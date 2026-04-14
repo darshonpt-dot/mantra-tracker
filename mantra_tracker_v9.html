@@ -1,0 +1,536 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F9FC;--surface:#FFFFFF;--border:#DDE3ED;--border-strong:#C4CEDF;
+  --text:#1A2333;--text2:#4A5568;--text3:#8492A6;--accent:#2563EB;
+}
+body{font-family:'Inter',system-ui,var(--font-sans);background:var(--bg);color:var(--text);font-size:14px}
+.app{min-height:100vh;background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:56px}
+.topbar-brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:32px;height:32px;background:#1A2333;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-name{font-size:15px;font-weight:500;color:var(--text)}
+.brand-sub{font-size:12px;color:var(--text3);margin-left:8px;padding-left:8px;border-left:1px solid var(--border)}
+.nav-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.5rem;gap:2px}
+.nav-btn{font-size:13px;padding:0 16px;height:40px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:400}
+.nav-btn:hover{color:var(--text)}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:500}
+.page{display:none;padding:1.5rem}.page.active{display:block}
+.page-title{font-size:20px;font-weight:500;color:var(--text);margin-bottom:12px}
+
+.date-nav{display:flex;align-items:center;gap:8px;margin-bottom:1.2rem;position:relative;width:fit-content}
+.arr-btn{width:32px;height:44px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit}
+.arr-btn:hover{background:#F8FAFC;border-color:var(--border-strong);color:var(--text)}
+.arr-btn:disabled{opacity:0.3;cursor:not-allowed}
+.date-display-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 20px;cursor:pointer;min-width:200px;font-family:inherit;position:relative}
+.date-display-btn:hover{border-color:var(--border-strong);background:#FAFBFC}
+.date-display-btn.open{border-color:var(--accent)}
+.ddb-day{font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em}
+.ddb-date{font-size:16px;font-weight:500;color:var(--text);line-height:1.2}
+.ddb-year{font-size:11px;color:var(--text3)}
+.ddb-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);transition:transform 0.15s}
+.ddb-arrow.open{transform:translateY(-50%) rotate(180deg)}
+.today-chip{font-size:11px;padding:3px 10px;border-radius:16px;border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;font-family:inherit;white-space:nowrap;height:28px}
+.today-chip:hover{background:#EBF2FF}
+
+.cal-popup{display:none;position:absolute;top:52px;left:40px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;z-index:200;width:280px;box-shadow:0 8px 24px rgba(0,0,0,0.10)}
+.cal-popup.open{display:block}
+.cal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-month-nav{width:28px;height:28px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.cal-month-nav:hover{background:#F8FAFC;border-color:var(--border-strong)}
+.cal-month-nav:disabled{opacity:0.3;cursor:not-allowed}
+.cal-month-title{font-size:13px;font-weight:500;color:var(--text)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:6px}
+.cal-dow{font-size:10px;font-weight:500;color:var(--text3);text-align:center;padding:2px 0 4px;text-transform:uppercase;letter-spacing:0.04em}
+.cal-cell{font-size:12px;color:var(--text2);text-align:center;padding:5px 3px;border-radius:7px;cursor:pointer;border:none;background:transparent;width:100%;font-family:inherit}
+.cal-cell:hover:not(:disabled):not(.empty){background:#EBF2FF;color:var(--accent)}
+.cal-cell.is-today{font-weight:700;color:var(--accent);border:1.5px solid var(--accent)}
+.cal-cell.is-selected{background:#1A2333;color:#FFF;font-weight:500}
+.cal-cell.is-selected.is-today{background:var(--accent);border-color:var(--accent)}
+.cal-cell:disabled{color:#D1D5DB;cursor:not-allowed}
+.cal-cell.empty{cursor:default}
+.cal-footer{margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:center}
+.cal-today-btn{font-size:12px;padding:4px 18px;border-radius:7px;border:1px solid var(--accent);color:var(--accent);background:transparent;cursor:pointer;font-family:inherit}
+.cal-today-btn:hover{background:#EBF2FF}
+
+.past-banner{background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:8px 14px;font-size:12px;color:#92400E;margin-bottom:1rem}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+.stat-card.blue{border-top:3px solid #2563EB}
+.stat-card.green{border-top:3px solid #15803D}
+.stat-card.gold{border-top:3px solid #D97706}
+.stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px}
+.stat-num{font-size:24px;font-weight:500;color:var(--text);line-height:1}
+.section-hdr{display:flex;align-items:center;gap:8px;margin:1.2rem 0 0.75rem}
+.section-dot{width:10px;height:10px;border-radius:50%}
+.section-label{font-size:13px;font-weight:500;color:var(--text);text-transform:uppercase;letter-spacing:0.06em}
+.section-count{font-size:11px;color:var(--text3);background:#F8FAFC;border:1px solid var(--border);border-radius:10px;padding:1px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem}
+.card:hover{border-color:var(--border-strong)}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.card-name{font-size:14px;font-weight:700;color:var(--text);line-height:1.35;max-width:160px}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;white-space:nowrap;font-weight:500}
+.card-mantra{font-size:11px;color:var(--text3);margin-bottom:8px;line-height:1.5;font-style:italic}
+.prog{height:6px;background:#F1F5F9;border-radius:3px;margin-bottom:8px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width 0.3s,background 0.3s}
+.btn-row{display:flex;gap:5px;align-items:center}
+.btn-primary{background:#1A2333;color:#FFF;border:none;font-size:13px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit}
+.btn-primary:hover{background:#2D3748}
+.btn-sec{background:var(--surface);color:var(--text2);border:1px solid var(--border);font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit}
+.btn-sec:hover{background:#F8FAFC}
+.btn-day-reset{background:none;border:1px solid #FDE68A;color:#92400E;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:6px;font-family:inherit;white-space:nowrap}
+.btn-day-reset:hover{background:#FFFBEB}
+.btn-master-reset{background:none;border:1px solid #FECDD3;color:#9F1239;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:6px;font-family:inherit;white-space:nowrap}
+.btn-master-reset:hover{background:#FFF1F2}
+.inp{width:54px;border:1px solid var(--border);border-radius:6px;padding:4px 7px;font-size:13px;color:var(--text);background:var(--surface);font-family:inherit}
+.inp:focus{outline:none;border-color:var(--accent)}
+.card-meta{font-size:10px;color:var(--text3);margin-top:5px;line-height:1.5}
+.today-pill{display:inline-flex;font-size:10px;background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;border-radius:10px;padding:1px 7px;margin-left:5px}
+.past-pill{display:inline-flex;font-size:10px;background:#FFFBEB;color:#92400E;border:1px solid #FDE68A;border-radius:10px;padding:1px 7px;margin-left:5px}
+.reset-note{font-size:10px;color:var(--text3);margin-top:4px;font-style:italic}
+
+.p-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.1rem;margin-bottom:10px}
+.p-card:hover{border-color:var(--border-strong)}
+.p-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.p-title{font-size:15px;font-weight:700;color:var(--text)}
+.p-mantra{font-size:12px;color:var(--text3);font-style:italic;margin-bottom:8px}
+.p-meta{display:flex;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+.p-meta-item{font-size:12px;color:var(--text3)}
+.p-meta-item strong{font-weight:500;color:var(--text2)}
+.p-prog{height:7px;background:#F1F5F9;border-radius:4px;margin-bottom:10px;overflow:hidden}
+.p-fill{height:100%;border-radius:4px;transition:width 0.3s,background 0.3s}
+.p-after{font-size:11px;color:var(--text3);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{font-size:12px;padding:4px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-family:inherit}
+.filter-btn.active{background:#1A2333;color:#FFF;border-color:#1A2333}
+.tbl-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.mtbl{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
+.mtbl th{background:#F8FAFC;color:var(--text3);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border)}
+.mtbl td{padding:9px 12px;border-bottom:1px solid #F1F5F9;color:var(--text);vertical-align:middle;font-weight:700}
+.mtbl tr:last-child td{border-bottom:none}
+.mtbl tbody tr:hover td{background:#FAFBFC}
+.group-row td{background:#F8FAFC;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;padding:6px 12px;border-bottom:1px solid var(--border)}
+.total-row td{background:#EFF6FF;font-weight:700;color:#1E40AF}
+.grand-row td{background:#1A2333;color:#FFF;font-weight:700}
+.mini-bar{width:80px;height:6px;background:#F1F5F9;border-radius:3px;display:inline-block;vertical-align:middle;overflow:hidden}
+.mini-fill{height:100%;border-radius:3px}
+.tbl-actions{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+</style>
+
+<div class="app">
+<h2 class="sr-only">Darshan Vedic Mantra Tracker</h2>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <div class="brand-mark">
+        <svg width="20" height="20" viewBox="0 0 100 100"><text x="50" y="72" font-size="72" text-anchor="middle" fill="#F7C948" font-family="serif">&#x0950;</text></svg>
+      </div>
+      <span class="brand-name">Mantra Tracker</span>
+      <span class="brand-sub">Darshan · Sagittarius Lagna · Hubli, 1985</span>
+    </div>
+    <span style="font-size:12px;color:var(--text3)" id="topbar-date"></span>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-btn active" onclick="showPage('daily')">Daily dashboard</button>
+  <button class="nav-btn" onclick="showPage('purash')">Purashcharana</button>
+  <button class="nav-btn" onclick="showPage('master')">Master tracker</button>
+</div>
+
+<div id="page-daily" class="page active">
+  <div class="page-title">Daily dashboard</div>
+  <div class="date-nav" id="date-nav">
+    <button class="arr-btn" id="btn-prev" onclick="changeDate(-1)">&#8592;</button>
+    <button class="date-display-btn" id="date-display-btn" onclick="toggleCal()">
+      <span class="ddb-day" id="ddb-day"></span>
+      <span class="ddb-date" id="ddb-date"></span>
+      <span class="ddb-year" id="ddb-year"></span>
+      <span class="ddb-arrow" id="ddb-arrow">&#9660;</span>
+    </button>
+    <div class="cal-popup" id="cal-popup">
+      <div class="cal-top">
+        <button class="cal-month-nav" id="cal-prev" onclick="calShiftMonth(-1)">&#8592;</button>
+        <span class="cal-month-title" id="cal-month-title"></span>
+        <button class="cal-month-nav" id="cal-next" onclick="calShiftMonth(1)">&#8594;</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-footer"><button class="cal-today-btn" onclick="goToday()">Jump to today</button></div>
+    </div>
+    <button class="arr-btn" id="btn-next" onclick="changeDate(1)">&#8594;</button>
+    <button class="today-chip" id="btn-today" onclick="goToday()" style="display:none">&#8617; Today</button>
+  </div>
+  <div id="past-banner" style="display:none" class="past-banner"></div>
+  <div class="stats-row" id="d-stats"></div>
+  <div class="section-hdr"><div class="section-dot" style="background:#2563EB"></div><span class="section-label" id="active-day-label">Today's mantras</span><span class="section-count" id="today-count"></span></div>
+  <div class="grid" id="today-grid"></div>
+  <div class="section-hdr" style="margin-top:1.5rem"><div class="section-dot" style="background:#8492A6"></div><span class="section-label">Other days</span><span class="section-count" id="other-count"></span></div>
+  <div class="grid" id="other-grid"></div>
+</div>
+
+<div id="page-purash" class="page">
+  <div class="page-title">Purashcharana targets</div>
+  <div style="font-size:13px;color:var(--text3);margin-bottom:1.2rem">All 5 active — sequential order recommended</div>
+  <div class="stats-row" id="p-stats"></div>
+  <div id="purash-list"></div>
+</div>
+
+<div id="page-master" class="page">
+  <div class="page-title">Master tracker</div>
+  <div style="font-size:13px;color:var(--text3);margin-bottom:1.2rem">Cumulative all-time counts. Reset here permanently wipes all entries for that mantra.</div>
+  <div class="stats-row" id="m-stats"></div>
+  <div class="filter-row" id="planet-filters"></div>
+  <div class="tbl-wrap">
+    <table class="mtbl">
+      <thead><tr>
+        <th>Mantra</th><th>Planet</th><th>Day</th><th>Daily target</th><th>Total count</th><th>Progress</th><th>Add / Reset all-time</th>
+      </tr></thead>
+      <tbody id="master-tbody"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<script>
+const DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW=['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const TODAY_KEY=TODAY.toISOString().slice(0,10);
+document.getElementById('topbar-date').textContent=TODAY.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+let viewDate=new Date(TODAY);
+let calYear=TODAY.getFullYear();
+let calMonthIdx=TODAY.getMonth();
+let calOpen=false;
+
+function dk(d){return d.toISOString().slice(0,10);}
+function dn(d){return DAYS[d.getDay()];}
+function ivt(){return dk(viewDate)===TODAY_KEY;}
+
+const PT={
+  Sun:{bg:'#FFFBEB',border:'#FDE68A',text:'#92400E'},Moon:{bg:'#EFF6FF',border:'#BFDBFE',text:'#1E40AF'},
+  Mars:{bg:'#FFF1F2',border:'#FECDD3',text:'#9F1239'},Mercury:{bg:'#F0FDF4',border:'#BBF7D0',text:'#14532D'},
+  Jupiter:{bg:'#FFFBEB',border:'#FDE68A',text:'#78350F'},Venus:{bg:'#FDF4FF',border:'#E9D5FF',text:'#581C87'},
+  Saturn:{bg:'#F5F3FF',border:'#DDD6FE',text:'#3730A3'},Ganesha:{bg:'#FFF7ED',border:'#FED7AA',text:'#7C2D12'},
+  Hanuman:{bg:'#FFF7ED',border:'#FED7AA',text:'#9A3412'},Rahu:{bg:'#FAF5FF',border:'#DDD6FE',text:'#4C1D95'},
+};
+function pt(p){return PT[p]||{bg:'#F8FAFC',border:'#CBD5E1',text:'#334155'};}
+function dpc(p){if(p>=100)return '#15803D';if(p>=75)return '#22C55E';if(p>=25)return '#4ADE80';return '#86EFAC';}
+function mpc(p){if(p>=100)return '#15803D';if(p>=90)return '#4ADE80';if(p>=75)return '#93C5FD';if(p>=50)return '#3B82F6';return '#EAB308';}
+
+const mantras=[
+  {id:'surya',   name:'Surya Arghya',     planet:'Sun',     mantra:'Om Hrim Hraum Suryaya Namaha',        daily:12,  note:'21x on Sundays only',               type:'Arghya', days:'All days'},
+  {id:'ganesha', name:'Ganesha Mantra',   planet:'Ganesha', mantra:'Om Gam Ganapataye Namaha',            daily:108, note:'Touch yantra, sandalwood incense',  type:'Beej',   days:'All days'},
+  {id:'hanuman', name:'Hanuman Chalisa',  planet:'Hanuman', mantra:'Full recitation',                     daily:1,   note:'3x on Saturdays during Rahu PD',    type:'Stotra', days:'All days'},
+  {id:'mrityu',  name:'Mrityunjaya',      planet:'Jupiter', mantra:'Om Tryambakam Yajamahe...',           daily:21,  note:'D-60 Lagna lord Jupiter',           type:'Mantra', days:'All days'},
+  {id:'moon_b',  name:'Moon Beej',        planet:'Moon',    mantra:'Om Som Somaya Namaha',                daily:108, note:'During Moon hora',                  type:'Beej',   days:'Monday'},
+  {id:'moon_g',  name:'Moon Gayatri',     planet:'Moon',    mantra:'Om Kshirputraya Vidmahe...',          daily:108, note:'D-60',                               type:'Gayatri',days:'Monday'},
+  {id:'argala',  name:'Argala Stotram',   planet:'Moon',    mantra:'Devi Mahatmyam — full recitation',    daily:1,   note:'Raw milk + white flowers to Shiva', type:'Stotra', days:'Monday'},
+  {id:'merc_b',  name:'Mercury Beej',     planet:'Mercury', mantra:'Om Bum Budhaya Namaha',               daily:27,  note:'Mercury hora 7–10 AM',              type:'Beej',   days:'Wednesday'},
+  {id:'merc_g',  name:'Mercury Gayatri',  planet:'Mercury', mantra:'Om Gajadhwajaya Vidmahe...',          daily:108, note:'D-60',                               type:'Gayatri',days:'Wednesday'},
+  {id:'jup_g',   name:'Jupiter Gayatri',  planet:'Jupiter', mantra:'Om Vrishabhdhwajaya Vidmahe...',      daily:108, note:'Before sunrise',                    type:'Gayatri',days:'Thursday'},
+  {id:'jup_b',   name:'Jupiter Beej',     planet:'Jupiter', mantra:'Om Brim Brihaspataye Namaha',         daily:19,  note:'Jupiter hora 6–10 AM — career slot',type:'Beej',   days:'Thursday'},
+  {id:'venus_g', name:'Venus Gayatri',    planet:'Venus',   mantra:'Om Ashwadhwajaya Vidmahe...',         daily:108, note:'D-60',                               type:'Gayatri',days:'Friday'},
+  {id:'lakshmi', name:'Lakshmi Ashtakam', planet:'Venus',   mantra:'Full recitation — evening',           daily:1,   note:'Ghee lamp. Yama amsha Venus',       type:'Stotra', days:'Friday'},
+  {id:'sat_b',   name:'Saturn Beej',      planet:'Saturn',  mantra:'Om Sham Shanaishcharaya Namaha',      daily:19,  note:'Saturn hora at sunrise',            type:'Beej',   days:'Saturday'},
+  {id:'sat_g',   name:'Saturn Gayatri',   planet:'Saturn',  mantra:'Om Kakadwajaya Vidmahe...',           daily:108, note:'D-60',                               type:'Gayatri',days:'Saturday'},
+];
+const purash=[
+  {id:'p0',priority:'1st',planet:'Jupiter',mantra:'Om Graam Greem Graum Sah Gurave Namah',         target:19000,day:'Thursday', deadline:'Before Jun 2026',after:'Revert to 19x Thursday Jupiter hora'},
+  {id:'p1',priority:'2nd',planet:'Moon',   mantra:'Om Shraam Shreem Shraum Sah Chandramase Namah', target:11000,day:'Monday',   deadline:'Before Jun 2026',after:'Revert to 108x Monday'},
+  {id:'p2',priority:'3rd',planet:'Venus',  mantra:'Om Draam Dreem Draum Sah Shukraya Namah',       target:16000,day:'Friday',   deadline:'By Dec 2026',    after:'Revert to Gayatri on Fridays'},
+  {id:'p3',priority:'4th',planet:'Mercury',mantra:'Om Braam Breem Braum Sah Budhaya Namah',        target:17000,day:'Wednesday',deadline:'By Dec 2026',    after:'Revert to 27x Wednesday'},
+  {id:'p4',priority:'5th',planet:'Saturn', mantra:'Om Praam Preem Praum Sah Shanaischaraya Namah', target:23000,day:'Saturday', deadline:'By Mar 2027',    after:'Revert to 19x Saturday Saturn hora'},
+];
+
+function loadStore(){try{return JSON.parse(localStorage.getItem('mt9_store')||'null')||{};}catch{return {};}}
+function saveStore(){try{localStorage.setItem('mt9_store',JSON.stringify(store));}catch{}}
+let store=loadStore();
+function getDC(id,k){return(store.days&&store.days[k]&&store.days[k][id])||0;}
+function getTotal(id){return(store.totals&&store.totals[id])||0;}
+
+function addC(id,n,k){
+  if(!store.days)store.days={};
+  if(!store.days[k])store.days[k]={};
+  if(!store.totals)store.totals={};
+  store.days[k][id]=(store.days[k][id]||0)+n;
+  store.totals[id]=(store.totals[id]||0)+n;
+  saveStore();
+}
+
+function resetDayCount(id,name){
+  const k=dk(viewDate);
+  const dayCnt=getDC(id,k);
+  if(dayCnt===0){alert(name+' already has 0 for this date.');return;}
+  const dateStr=viewDate.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  if(!confirm('Reset '+name+' for '+dateStr+'?\n\nThis will:\n- Zero out this day\'s count ('+dayCnt+')\n- Subtract '+dayCnt+' from the all-time total\n\nAll other dates stay untouched.'))return;
+  if(!store.days)store.days={};
+  if(!store.days[k])store.days[k]={};
+  if(!store.totals)store.totals={};
+  store.days[k][id]=0;
+  store.totals[id]=Math.max(0,(store.totals[id]||0)-dayCnt);
+  saveStore();refresh();
+}
+
+function resetAllTime(id,name){
+  const total=getTotal(id);
+  if(total===0){alert(name+' all-time total is already 0.');return;}
+  const confirmed=confirm(
+    '⚠ PERMANENT RESET — '+name+'\n\n'+
+    'This will:\n'+
+    '- Wipe the all-time total (currently '+total.toLocaleString()+')\n'+
+    '- Clear every date entry for this mantra\n\n'+
+    'This cannot be undone. Are you sure?'
+  );
+  if(!confirmed)return;
+  const doubleCheck=confirm('Last confirmation — permanently delete all '+total.toLocaleString()+' entries for '+name+'?');
+  if(!doubleCheck)return;
+  if(!store.days)store.days={};
+  if(!store.totals)store.totals={};
+  Object.keys(store.days).forEach(k=>{if(store.days[k][id]!==undefined)store.days[k][id]=0;});
+  store.totals[id]=0;
+  saveStore();refresh();
+}
+
+let activeFilter='All';
+function isActiveDay(m,d){return m.days==='All days'||m.days===dn(d);}
+function tgt(m,d){return m.id==='surya'&&dn(d)==='Sunday'?21:m.daily;}
+function pct(c,t){return t>0?Math.min(100,Math.round(c/t*100)):0;}
+
+function toggleCal(){
+  calOpen=!calOpen;
+  calYear=viewDate.getFullYear();calMonthIdx=viewDate.getMonth();
+  document.getElementById('cal-popup').classList.toggle('open',calOpen);
+  document.getElementById('date-display-btn').classList.toggle('open',calOpen);
+  document.getElementById('ddb-arrow').classList.toggle('open',calOpen);
+  if(calOpen)renderCalGrid();
+}
+function closeCal(){
+  calOpen=false;
+  document.getElementById('cal-popup').classList.remove('open');
+  document.getElementById('date-display-btn').classList.remove('open');
+  document.getElementById('ddb-arrow').classList.remove('open');
+}
+document.addEventListener('click',function(e){
+  const nav=document.getElementById('date-nav');
+  if(calOpen&&nav&&!nav.contains(e.target))closeCal();
+});
+function calShiftMonth(dir){
+  calMonthIdx+=dir;
+  if(calMonthIdx>11){calMonthIdx=0;calYear++;}
+  if(calMonthIdx<0){calMonthIdx=11;calYear--;}
+  renderCalGrid();
+}
+function renderCalGrid(){
+  document.getElementById('cal-month-title').textContent=MONTHS[calMonthIdx]+' '+calYear;
+  document.getElementById('cal-next').disabled=(calYear>TODAY.getFullYear()||(calYear===TODAY.getFullYear()&&calMonthIdx>=TODAY.getMonth()));
+  const firstDay=new Date(calYear,calMonthIdx,1).getDay();
+  const daysInMonth=new Date(calYear,calMonthIdx+1,0).getDate();
+  let html=DOW.map(d=>`<span class="cal-dow">${d}</span>`).join('');
+  for(let i=0;i<firstDay;i++)html+=`<span class="cal-cell empty"></span>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const cd=new Date(calYear,calMonthIdx,d);cd.setHours(0,0,0,0);
+    const ck=cd.toISOString().slice(0,10);
+    const isFuture=cd>TODAY;
+    const isT=ck===TODAY_KEY;
+    const isSel=ck===dk(viewDate);
+    let cls='cal-cell';
+    if(isT)cls+=' is-today';
+    if(isSel)cls+=' is-selected';
+    html+=`<button class="${cls}" ${isFuture?'disabled':''} onclick="pickDay('${ck}')">${d}</button>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+function pickDay(key){
+  const nd=new Date(key+'T00:00:00');nd.setHours(0,0,0,0);
+  if(nd>TODAY)return;
+  viewDate=nd;closeCal();renderDaily();
+}
+
+function updateDateHeader(){
+  const isToday=ivt();
+  document.getElementById('ddb-day').textContent=dn(viewDate).toUpperCase();
+  document.getElementById('ddb-date').textContent=viewDate.getDate()+' '+MONTHS[viewDate.getMonth()];
+  document.getElementById('ddb-year').textContent=viewDate.getFullYear()+(isToday?' · Today':'');
+  document.getElementById('btn-next').disabled=isToday;
+  document.getElementById('btn-today').style.display=isToday?'none':'inline-block';
+  const banner=document.getElementById('past-banner');
+  if(!isToday){
+    banner.style.display='block';
+    banner.textContent='Viewing '+dn(viewDate)+' '+dk(viewDate)+' — counts added here update this date and the all-time total.';
+  }else{banner.style.display='none';}
+  document.getElementById('active-day-label').textContent=isToday?'Today\'s mantras':dn(viewDate)+'\'s mantras';
+}
+function changeDate(dir){
+  const nd=new Date(viewDate);nd.setDate(nd.getDate()+dir);
+  if(nd>TODAY)return;
+  viewDate=nd;renderDaily();
+}
+function goToday(){viewDate=new Date(TODAY);closeCal();renderDaily();}
+
+function addFromCard(id,n){addC(id,n,dk(viewDate));refresh();}
+function addFromInp(id,inpId){
+  const el=document.getElementById(inpId);const v=parseInt(el?el.value:0)||0;
+  if(v>0){addC(id,v,dk(viewDate));if(el)el.value='';}refresh();
+}
+function addMaster1(id){addC(id,1,TODAY_KEY);refresh();}
+function addMasterInp(id,inpId){
+  const el=document.getElementById(inpId);const v=parseInt(el?el.value:0)||0;
+  if(v>0){addC(id,v,TODAY_KEY);if(el)el.value='';}refresh();
+}
+
+function mantraCard(m){
+  const k=dk(viewDate),dayCnt=getDC(m.id,k),total=getTotal(m.id),t=tgt(m,viewDate),dp=pct(dayCnt,t),th=pt(m.planet);
+  const isToday=ivt();
+  const pill=isToday?'<span class="today-pill">today</span>':'<span class="past-pill">past</span>';
+  return `<div class="card" style="border-left:3px solid ${th.border}">
+    <div class="card-top">
+      <div class="card-name">${m.name}${pill}</div>
+      <span class="badge" style="background:${th.bg};color:${th.text};border:1px solid ${th.border}">${m.planet}</span>
+    </div>
+    <div class="card-mantra">${m.mantra}</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${isToday?'Today':'This day'}: <strong style="color:var(--text)">${dayCnt}</strong> / ${t}</div>
+    <div class="prog"><div class="prog-fill" style="width:${dp}%;background:${dpc(dp)}"></div></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">All-time: <strong style="color:var(--text)">${total.toLocaleString()}</strong></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="addFromCard('${m.id}',1)">+1</button>
+      <input class="inp" type="number" id="ci_${m.id}" placeholder="n" min="0"/>
+      <button class="btn-sec" onclick="addFromInp('${m.id}','ci_${m.id}')">add</button>
+      <button class="btn-day-reset" onclick="resetDayCount('${m.id}','${m.name}')">reset day</button>
+    </div>
+    <div class="reset-note">reset day = clears this date only &amp; subtracts from all-time</div>
+  </div>`;
+}
+
+function renderDaily(){
+  updateDateHeader();
+  const activeM=mantras.filter(m=>isActiveDay(m,viewDate));
+  const otherM=mantras.filter(m=>!isActiveDay(m,viewDate));
+  const k=dk(viewDate);
+  const done=activeM.filter(m=>getDC(m.id,k)>=tgt(m,viewDate)).length;
+  const totalTgt=activeM.reduce((a,m)=>a+tgt(m,viewDate),0);
+  const isToday=ivt();
+  document.getElementById('d-stats').innerHTML=`
+    <div class="stat-card blue"><div class="stat-lbl">Mantras ${isToday?'today':dn(viewDate)}</div><div class="stat-num">${activeM.length}</div></div>
+    <div class="stat-card green"><div class="stat-lbl">Completed</div><div class="stat-num">${done} / ${activeM.length}</div></div>
+    <div class="stat-card gold"><div class="stat-lbl">Target count</div><div class="stat-num">${totalTgt}</div></div>`;
+  document.getElementById('today-count').textContent=activeM.length;
+  document.getElementById('other-count').textContent=otherM.length;
+  document.getElementById('today-grid').innerHTML=activeM.map(m=>mantraCard(m)).join('');
+  document.getElementById('other-grid').innerHTML=otherM.map(m=>mantraCard(m)).join('');
+}
+
+function renderPurash(){
+  const totalDone=purash.filter(p=>getTotal(p.id)>=p.target).length;
+  const grand=purash.reduce((a,p)=>a+getTotal(p.id),0);
+  const grandTgt=purash.reduce((a,p)=>a+p.target,0);
+  document.getElementById('p-stats').innerHTML=`
+    <div class="stat-card blue"><div class="stat-lbl">Completed</div><div class="stat-num">${totalDone} / 5</div></div>
+    <div class="stat-card gold"><div class="stat-lbl">Total chants</div><div class="stat-num">${grand.toLocaleString()}</div></div>
+    <div class="stat-card green"><div class="stat-lbl">Overall progress</div><div class="stat-num">${pct(grand,grandTgt)}%</div></div>`;
+  document.getElementById('purash-list').innerHTML=purash.map(p=>{
+    const c=getTotal(p.id),pp=pct(c,p.target),th=pt(p.planet),done=c>=p.target;
+    return `<div class="p-card" style="border-left:3px solid ${th.border}">
+      <div class="p-hdr">
+        <div class="p-title">${p.planet} Purashcharana
+          <span class="badge" style="background:${th.bg};color:${th.text};border:1px solid ${th.border};margin-left:7px">${p.planet}</span>
+        </div>
+        <span class="badge" style="background:${done?'#F0FDF4':'#EFF6FF'};color:${done?'#15803D':'#1E40AF'};border:1px solid ${done?'#BBF7D0':'#BFDBFE'}">${p.priority} &middot; ${done?'complete':'active'}</span>
+      </div>
+      <div class="p-mantra">${p.mantra}</div>
+      <div class="p-meta">
+        <div class="p-meta-item">Day: <strong>${p.day}</strong></div>
+        <div class="p-meta-item">Deadline: <strong>${p.deadline}</strong></div>
+        <div class="p-meta-item">Target: <strong>${p.target.toLocaleString()}</strong></div>
+        <div class="p-meta-item">Progress: <strong>${pp}%</strong></div>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px">
+        <span style="font-size:22px;font-weight:500;color:var(--text)">${c.toLocaleString()}</span>
+        <span style="font-size:13px;color:var(--text3)">/ ${p.target.toLocaleString()}</span>
+      </div>
+      <div class="p-prog"><div class="p-fill" style="width:${pp}%;background:${mpc(pp)}"></div></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="addMaster1('${p.id}')">+1</button>
+        <input class="inp" type="number" id="pi_${p.id}" placeholder="n" min="0"/>
+        <button class="btn-sec" onclick="addMasterInp('${p.id}','pi_${p.id}')">add</button>
+      </div>
+      <div class="p-after">After completion: ${p.after}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderMaster(){
+  const allM=mantras.reduce((a,m)=>a+getTotal(m.id),0);
+  const allP=purash.reduce((a,p)=>a+getTotal(p.id),0);
+  document.getElementById('m-stats').innerHTML=`
+    <div class="stat-card blue"><div class="stat-lbl">Daily mantras total</div><div class="stat-num">${allM.toLocaleString()}</div></div>
+    <div class="stat-card gold"><div class="stat-lbl">Purashcharana total</div><div class="stat-num">${allP.toLocaleString()}</div></div>
+    <div class="stat-card green"><div class="stat-lbl">Grand total all chants</div><div class="stat-num">${(allM+allP).toLocaleString()}</div></div>`;
+  const planets=['All',...new Set(mantras.map(m=>m.planet))];
+  document.getElementById('planet-filters').innerHTML=planets.map(pl=>`<button class="filter-btn${activeFilter===pl?' active':''}" onclick="setFilter('${pl}')">${pl}</button>`).join('');
+  const filtered=activeFilter==='All'?mantras:mantras.filter(m=>m.planet===activeFilter);
+  const filtTotal=filtered.reduce((a,m)=>a+getTotal(m.id),0);
+  const filtDTgt=filtered.reduce((a,m)=>a+m.daily,0);
+  let rows='';let prev='';
+  filtered.forEach(m=>{
+    const c=getTotal(m.id),p=pct(c,m.daily),th=pt(m.planet),pc=mpc(p);
+    if(activeFilter==='All'&&m.planet!==prev){rows+=`<tr class="group-row"><td colspan="7">${m.planet}</td></tr>`;prev=m.planet;}
+    rows+=`<tr>
+      <td>${m.name}</td>
+      <td><span class="badge" style="background:${th.bg};color:${th.text};border:1px solid ${th.border}">${m.planet}</span></td>
+      <td>${m.days}</td><td>${m.daily}</td><td>${c.toLocaleString()}</td>
+      <td><span class="mini-bar"><span class="mini-fill" style="width:${p}%;background:${pc}"></span></span><span style="font-size:11px;color:var(--text3);margin-left:6px">${p}%</span></td>
+      <td><div class="tbl-actions">
+        <button class="btn-primary" style="padding:3px 9px;font-size:12px" onclick="addMaster1('${m.id}')">+1</button>
+        <input class="inp" style="width:42px" type="number" id="ti_${m.id}" placeholder="n" min="0"/>
+        <button class="btn-sec" style="padding:3px 8px;font-size:11px" onclick="addMasterInp('${m.id}','ti_${m.id}')">add</button>
+        <button class="btn-master-reset" onclick="resetAllTime('${m.id}','${m.name}')">reset all</button>
+      </div></td>
+    </tr>`;
+  });
+  rows+=`<tr class="total-row"><td colspan="3">Filtered total</td><td>${filtDTgt}</td><td>${filtTotal.toLocaleString()}</td><td colspan="2"></td></tr>`;
+  if(activeFilter==='All'){
+    rows+=`<tr class="group-row"><td colspan="7">Purashcharana</td></tr>`;
+    let pTot=0;
+    purash.forEach(p=>{
+      const c=getTotal(p.id),pp=pct(c,p.target),th=pt(p.planet),pc=mpc(pp);pTot+=c;
+      rows+=`<tr>
+        <td>${p.planet} Purashcharana</td>
+        <td><span class="badge" style="background:${th.bg};color:${th.text};border:1px solid ${th.border}">${p.planet}</span></td>
+        <td>${p.day}</td><td>${p.target.toLocaleString()}</td><td>${c.toLocaleString()}</td>
+        <td><span class="mini-bar"><span class="mini-fill" style="width:${pp}%;background:${pc}"></span></span><span style="font-size:11px;color:var(--text3);margin-left:6px">${pp}%</span></td>
+        <td><div class="tbl-actions">
+          <button class="btn-primary" style="padding:3px 9px;font-size:12px" onclick="addMaster1('${p.id}')">+1</button>
+          <input class="inp" style="width:42px" type="number" id="ti_${p.id}" placeholder="n" min="0"/>
+          <button class="btn-sec" style="padding:3px 8px;font-size:11px" onclick="addMasterInp('${p.id}','ti_${p.id}')">add</button>
+          <button class="btn-master-reset" onclick="resetAllTime('${p.id}','${p.planet} Purashcharana')">reset all</button>
+        </div></td>
+      </tr>`;
+    });
+    rows+=`<tr class="grand-row"><td colspan="3">Grand total — all chants</td><td></td><td>${(allM+allP).toLocaleString()}</td><td colspan="2"></td></tr>`;
+  }
+  document.getElementById('master-tbody').innerHTML=rows;
+}
+
+function setFilter(pl){activeFilter=pl;renderMaster();}
+function refresh(){
+  const p=document.querySelector('.page.active').id.replace('page-','');
+  if(p==='daily')renderDaily();
+  else if(p==='purash')renderPurash();
+  else renderMaster();
+}
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  ['daily','purash','master'].forEach((n,i)=>{if(n===p)document.querySelectorAll('.nav-btn')[i].classList.add('active');});
+  refresh();
+}
+renderDaily();
+</script>
